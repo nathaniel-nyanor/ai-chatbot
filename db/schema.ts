@@ -21,11 +21,9 @@ export type User = InferSelectModel<typeof user>;
 
 export const chat = pgTable('Chat', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
-  createdAt: timestamp('createdAt').notNull(),
-  title: text('title').notNull(),
-  userId: uuid('userId')
-    .notNull()
-    .references(() => user.id),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  title: varchar('title', { length: 255 }).default('New Chat'),
+  userId: varchar('userId').notNull(),
 });
 
 export type Chat = InferSelectModel<typeof chat>;
@@ -37,7 +35,7 @@ export const message = pgTable('Message', {
     .references(() => chat.id),
   role: varchar('role').notNull(),
   content: json('content').notNull(),
-  createdAt: timestamp('createdAt').notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
 });
 
 export type Message = InferSelectModel<typeof message>;
@@ -53,11 +51,9 @@ export const vote = pgTable(
       .references(() => message.id),
     isUpvoted: boolean('isUpvoted').notNull(),
   },
-  (table) => {
-    return {
-      pk: primaryKey({ columns: [table.chatId, table.messageId] }),
-    };
-  }
+  (table) => ({
+    pk: primaryKey({ columns: [table.chatId, table.messageId] }),
+  })
 );
 
 export type Vote = InferSelectModel<typeof vote>;
